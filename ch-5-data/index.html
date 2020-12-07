@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+    <html lang="en">
+        <head>
+            <meta charset="utf-8">
+            <title>D3 Page Template</title>
+            <script type="text/javascript" src="../d3.js"></script>
+        </head>
+        <body>
+            <script type="text/javascript">
+                // var rowConverter = function(d) {
+                //     return console.log({
+                //         Food: d.Food,
+                //         Deliciousness: parseInt(d.Deliciousness)
+                //     })
+                // }
+                var dataset = [5, 10, 15, 20, 25];
+
+                d3.select("body").selectAll("p")
+                .data(dataset)
+                .enter()
+                .append("p")
+                .text(function(d) { return d; })
+                .style("color", function(d) {
+                    if (d > 15) {
+                        return "red";
+                    } else {
+                        return "black";
+                    }
+                })
+
+                // d3.csv("./foodData.csv", function(error, data) {
+                //     if (error) {
+                //         console.log(error);
+                //     } else {
+                        
+                //     }
+
+                //     dataset = data
+                // })  
+            </script>
+        </body>
+    </html
