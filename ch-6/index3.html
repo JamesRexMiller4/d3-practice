@@ -47,9 +47,6 @@
             .attr("fill", function(d) {
                 return "rgb(0,0, " + Math.round(d * 10) + ")"
             });
-            // .text(function(d) {
-            //     return d;
-            // })
             
             svg.selectAll("text")
                 .data(dataset)
@@ -68,17 +65,6 @@
                 .attr("font-size", "11px")
                 .attr("fill", "white")
                 .attr("text-anchor", "middle")
-
-
-            // d3.select("body").selectAll("div")
-            //     .data(dataset)
-            //     .enter()
-            //     .append("div")
-            //     .attr("class", "bar")
-            //     .style("height", function(d) {
-            //         var barHeight = d * 5;
-            //         return barHeight + "px"
-            //     })
             </script>
         </body>
     </html>
