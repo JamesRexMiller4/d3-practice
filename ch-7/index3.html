@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+    <html lang="en">
+        <head>
+            <meta charset="utf-8">
+            <title>D3 Page Template</title>
+            <script type="text/javascript" src="../d3.js"></script>
+        </head>
+        <body>
+            <script type="text/javascript">
+            // Your beautiful D3 code will go here
+
+            var rowConverter = function(d) {
+                return {
+                    Date: parseTime(d.Date),
+                    Amount: parseInt(d.Amount)
+                };
+            }
+
+            var dataset = d3.csv('./timeData.csv', function(err, data) {
+                return rowConverter(data)
+            });
+
+            console.log(dataset)
+            </script>
+        </body>
+    </html>
