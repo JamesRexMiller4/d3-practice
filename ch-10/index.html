@@ -5,8 +5,8 @@
         <meta charset="utf-8">
         <title>D3 Page Template</title>
         <script type="text/javascript" src="../d3.js"></script>
-        <!-- <style>
-            rect {
+        <style>
+            /* rect {
                 -moz-transition: all 0.25s;
                 -o-transition: all 0.25s;
                 -webkit-transition: all 0.25s;
@@ -15,16 +15,17 @@
 
             rect:hover {
                 fill: orange;  
-            }
-        </style> -->
+            } */
+        </style>
     </head>
     <body>
         <script type="text/javascript">
         // Your beautiful D3 code will go here
 
 //Width and height
-var w = 600;
+			var w = 600;
 			var h = 250;
+			var sortOrder = false;
 			
 			var dataset = [ 5, 10, 13, 19, 21, 25, 22, 18, 15, 13,
 							11, 12, 15, 20, 18, 17, 16, 18, 23, 25 ];
@@ -64,16 +65,19 @@ var w = 600;
 			   })
 			   .on("mouseover", function() {
                     d3.select(this)
-                        .transition()
+                        .transition("fillBars")
                         .duration(250)
                         .attr("fill", "orange");
 			   })
 			   .on("mouseout", function(d) {
                     d3.select(this)
-                        .transition()
+                        .transition("restoreBarColor")
                         .duration(250)
                         .attr("fill", "rgb(0, 0, " + (d * 10) + ")");
-			   });
+			   })
+			   .on("click", function() {
+				   sortBars();
+			   })
 
 			//Create labels
 			svg.selectAll("text")
@@ -93,6 +97,27 @@ var w = 600;
 			   .attr("font-family", "sans-serif")
 			   .attr("font-size", "11px")
 			   .attr("fill", "white");
+
+			var sortBars = function() {
+				sortOrder = !sortOrder;
+
+				svg.selectAll("rect")
+					.sort(function(a, b) {
+						if (sortOrder) {
+							return d3.ascending(a, b);
+						} else {
+							return d3.descending(a,b);
+						}
+					})
+					.transition("sortBars")
+					.delay(function(d, i) {
+						return i * 50;
+					})
+					.duration(1000)
+					.attr("x", function(d, i) {
+						return xScale(i);
+					});
+			};
         </script>
     </body>
 </html>
