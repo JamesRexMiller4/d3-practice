@@ -6,7 +6,7 @@
         <title>D3 Page Template</title>
         <script type="text/javascript" src="../d3.js"></script>
         <style>
-            /* rect {
+            rect {
                 -moz-transition: all 0.25s;
                 -o-transition: all 0.25s;
                 -webkit-transition: all 0.25s;
@@ -15,10 +15,40 @@
 
             rect:hover {
                 fill: orange;  
-            } */
+            }
+
+			#tooltip {
+				position: absolute;
+				width: 200px;
+				height: auto;
+				padding: 10px;
+				background-color: white;
+				-webkit-border-radius: 10px;
+				-moz-border-radius: 10px;
+				border-radius: 10px;
+				-webkit-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+				-moz-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+				box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+				pointer-events: none;
+			}
+
+			#tooltip.hidden {
+				display: none;
+			}
+
+			#tooltip p {
+				margin: 0;
+				font-family: sans-serif;
+				font-size: 16px;
+				line-height: 20px;
+			}
         </style>
     </head>
     <body>
+		<div id='tooltip' class="hidden">
+			<p><strong>Important Label Heading</strong></p>
+			<p><span id="value">100</span></p>
+		</div>
         <script type="text/javascript">
         // Your beautiful D3 code will go here
 
@@ -63,40 +93,44 @@
 			   .attr("fill", function(d) {
 					return "rgb(0, 0, " + Math.round(d * 10) + ")";
 			   })
-			   .on("mouseover", function() {
-                    d3.select(this)
-                        .transition("fillBars")
-                        .duration(250)
-                        .attr("fill", "orange");
+			   .on("mouseover", function(d) {
+					var xPosition = parseFloat(d3.select(this).attr("x")) + xScale.bandwidth() / 2;
+					var yPosition = parseFloat(d3.select(this).attr("y")) + 14;
+
+					
+					var datum = d.target.__data__
+
+					d3.select("#tooltip")
+					  .style("left", xPosition + "px")
+					  .style("top", yPosition + "px")
+					  .select("#value")
+					  .text(datum);
 			   })
 			   .on("mouseout", function(d) {
-                    d3.select(this)
-                        .transition("restoreBarColor")
-                        .duration(250)
-                        .attr("fill", "rgb(0, 0, " + (d * 10) + ")");
+                    d3.select("#tooltip").classed("hidden", false);
 			   })
 			   .on("click", function() {
 				   sortBars();
 			   })
 
 			//Create labels
-			svg.selectAll("text")
-			   .data(dataset)
-			   .enter()
-			   .append("text")
-			   .text(function(d) {
-			   		return d;
-			   })
-			   .attr("text-anchor", "middle")
-			   .attr("x", function(d, i) {
-			   		return xScale(i) + xScale.bandwidth() / 2;
-			   })
-			   .attr("y", function(d) {
-			   		return h - yScale(d) + 14;
-			   })
-			   .attr("font-family", "sans-serif")
-			   .attr("font-size", "11px")
-			   .attr("fill", "white");
+			// svg.selectAll("text")
+			//    .data(dataset)
+			//    .enter()
+			//    .append("text")
+			//    .text(function(d) {
+			//    		return d;
+			//    })
+			//    .attr("text-anchor", "middle")
+			//    .attr("x", function(d, i) {
+			//    		return xScale(i) + xScale.bandwidth() / 2;
+			//    })
+			//    .attr("y", function(d) {
+			//    		return h - yScale(d) + 14;
+			//    })
+			//    .attr("font-family", "sans-serif")
+			//    .attr("font-size", "11px")
+			//    .attr("fill", "white");
 
 			var sortBars = function() {
 				sortOrder = !sortOrder;
