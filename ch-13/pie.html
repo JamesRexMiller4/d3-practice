@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+    <html lang="en">
+        <head>
+            <meta charset="utf-8">
+            <title>D3 Page Template</title>
+            <script type="text/javascript" src="../d3.js"></script>
+            <style>
+                text {
+				font-family: sans-serif;
+				font-size: 12px;
+				fill: white;
+			}
+            </style>
+        </head>
+        <body>
+            <script type="text/javascript">
+            // Your beautiful D3 code will go here
+
+            var w = 300;
+            var h = 300;
+
+            var dataset = [5, 10, 20, 45, 6, 25];
+
+            var outerRadius = w / 2;
+            var innerRadius = 0;  // divide w / any value greater than outerRadius to create a donut chart
+            var arc = d3.arc()
+                        .innerRadius(innerRadius)
+                        .outerRadius(outerRadius);
+
+            var pie = d3.pie();
+
+            var color = d3.scaleOrdinal(d3.schemeCategory10);
+
+            var svg = d3.select("body")
+                        .append("svg")
+                        .attr("width", w)
+                        .attr("height", h);
+
+            var arcs = svg.selectAll("g.arc")
+                            .data(pie(dataset))
+                            .enter()
+                            .append("g")
+                            .attr("class", "arc")
+                            .attr("transform", "translate(" + outerRadius + "," + outerRadius + ")");
+
+            arcs.append("path")
+                .attr("fill", function(d, i) {
+                    return color(i)
+                })
+                .attr("d", arc);
+
+            arcs.append("text")
+                .attr("transform", function(d) {
+                    return "translate(" + arc.centroid(d) + ")"
+                })
+                .attr("text-anchor", "middle")
+                .text(function(d) {
+                    return d.value;
+                })
+            </script>
+        </body>
+    </html>
