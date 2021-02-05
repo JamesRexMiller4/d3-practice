@@ -21,9 +21,9 @@
             ];
 
             var stack = d3.stack()
-                            .keys(["apples", "oranges", "grapes"])
-                            //.order(d3.stackOrderDescending) // order the stacks from greatest to least
-            
+                            .keys(["apples", "oranges", "grapes"]);
+                            //.order(d3.stackOrderDescending)
+
             var series = stack(dataset);
 
             var xScale = d3.scaleBand()
@@ -36,7 +36,7 @@
                                 return d.apples + d.oranges + d.grapes;
                             })
                         ])
-                        .range([0, h]);
+                        .range([h, 0]);
 
             var colors = d3.scaleOrdinal(d3.schemeCategory10);
 
@@ -61,10 +61,10 @@
                                     return xScale(i);
                                 })
                                 .attr("y", function(d) {
-                                    return yScale(d[0]);
+                                    return yScale(d[1]);
                                 })
                                 .attr("height", function(d) {
-                                    return yScale(d[1]) - yScale(d[0]);
+                                    return yScale(d[0]) - yScale(d[1]);
                                 })
                                 .attr('width', xScale.bandwidth());
             </script>
