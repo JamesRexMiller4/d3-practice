@@ -5,19 +5,28 @@
             <title>D3 Page Template</title>
             <script type="text/javascript" src="../d3-book/d3.js"></script>
             <style type="text/css">
-                .pan rect {
+                .pan rect,
+                .zoom rect {
                     fill: black;
                     opacity: 0.2;
 			    }
 
-                .pan text {
+                .zoom rect {
+                    rx: 5;
+                    ry: 5;
+                }
+
+                .pan text,
+                .zoom text {
                     fill: black;
                     font-size: 18px;
                     text-anchor: middle;
                 }
 
                 .pan:hover rect,
-                .pan:hover text {
+                .pan:hover text,
+                .zoom:hover rect,
+                .zoom:hover text {
                     fill: blue;
                 }
 
@@ -159,6 +168,7 @@
                             });
 
                         createPanButtons();
+                        createZoomButtons();
                     });
 
             });
@@ -258,10 +268,71 @@
 
                 map.transition()
                     .call(zoom.translateBy, x, y);
-            })
-        }
+            });
+        };
 
+        var createZoomButtons = function() {
 
+            var zoomIn = svg.append('g')
+                            .attr("class", "zoom")
+                            .attr("id", "in")
+                            .attr("transform", "translate(" + (w - 110) + "," + (h - 70) + ")");
+
+            zoomIn.append("rect")
+                    .attr("x", 0)
+                    .attr("y", 0)
+                    .attr("width", 30)
+                    .attr("height", 30);
+
+            zoomIn.append("text")
+                    .attr("x", 15)
+                    .attr("y", 0)
+                    .attr("width", 30)
+                    .attr("height", 30);
+
+            zoomIn.append("text")
+                .attr("x", 15)
+                .attr("y", 20)
+                .text("+");
+
+            var zoomOut = svg.append("g")
+                            .attr("class", "zoom")
+                            .attr("id", "out")
+                            .attr("transform", "translate(" + (w - 70) + "," + (h - 70) + ")");
+
+            zoomOut.append("rect")
+                    .attr("x", 0)
+                    .attr("y", 0)
+                    .attr("width", 30)
+                    .attr("height", 30);
+
+            zoomOut.append("text")
+                    .attr("x", 15)
+                    .attr("y", 20)
+                    .html("&ndash;");
+
+            d3.selectAll(".zoom")
+                .on("click", function() {
+
+                    var scaleFactor;
+
+                    var direction = d3.select(this).attr("id");
+
+                    switch (direction) {
+                        case "in":
+                            scaleFactor = 1.5;
+                            break;
+                        case "out":
+                            scaleFactor = 0.75;
+                            break;
+                        default:
+                            break;
+                    }
+
+                    map.transition()
+                        .call(zoom.scaleBy, scaleFactor);
+                });
+        };
 
             </script>
         </body>
