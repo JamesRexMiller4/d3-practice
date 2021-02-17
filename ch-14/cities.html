@@ -33,6 +33,10 @@
             </style>
         </head>
         <body>
+            <div>
+                <button id="pnw">Pacific Northwest</button>
+			    <button id="reset">Reset</button>
+            </div>
             <script type="text/javascript">
             // Your beautiful D3 code will go here
 
@@ -286,11 +290,11 @@
                     .attr("width", 30)
                     .attr("height", 30);
 
-            zoomIn.append("text")
-                    .attr("x", 15)
-                    .attr("y", 0)
-                    .attr("width", 30)
-                    .attr("height", 30);
+            // zoomIn.append("text")
+            //         .attr("x", 15)
+            //         .attr("y", 20)
+            //         .attr("width", 30)
+            //         .attr("height", 30);
 
             zoomIn.append("text")
                 .attr("x", 15)
@@ -335,6 +339,26 @@
                         .call(zoom.scaleBy, scaleFactor);
                 });
         };
+
+            d3.select("#pnw")
+                .on("click", function() {
+                    map.transition()
+                        .call(zoom.transform, d3.zoomIdentity
+                            .translate(w/2, h/2)
+                            .scale(0.9)
+                            .translate(600, 300));
+
+                });
+
+                d3.select("#reset")
+                    .on("click", function() {
+                        
+                        map.transition()
+                            .call(zoom.transform, d3.zoomIdentity
+                                .translate(w/2, h/2))
+                                .scale(0.25)
+                                .translate(-center[0], -center[1]);
+                    });
 
             </script>
         </body>
