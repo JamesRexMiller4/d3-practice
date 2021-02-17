@@ -354,10 +354,10 @@
                     .on("click", function() {
                         
                         map.transition()
-                            .call(zoom.transform, d3.zoomIdentity
-                                .translate(w/2, h/2))
+                            .call(zoom.transform, d3.zoomIdentity  //Same as the initial transform
+                                .translate(w/2, h/2)
                                 .scale(0.25)
-                                .translate(-center[0], -center[1]);
+                                .translate(-center[0], -center[1]));
                     });
 
             </script>
