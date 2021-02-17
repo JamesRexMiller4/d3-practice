@@ -30,6 +30,13 @@
                     fill: blue;
                 }
 
+                .label {
+                    font-family: Helvetica, sans-serif;
+                    font-size: 11px;
+                    fill: black;
+                    text-anchor: middle;
+                }
+
             </style>
         </head>
         <body>
@@ -52,6 +59,8 @@
             var color = d3.scaleQuantize().range(["rgb(237,248,233)","rgb(186,228,179)","rgb(116,196,118)","rgb(49,163,84)","rgb(0,109,44)"])
             
             var formatAsThousands = d3.format(",");
+
+            var formatDecimals = d3.format(".3");
 
             var svg = d3.select('body')
                         .append("svg")
@@ -148,6 +157,24 @@
                             } else {
                                 return "#ccc";
                             }
+                        });
+
+                    
+                    map.selectAll("text")
+                        .data(json.features)
+                        .enter()
+                        .append("text")
+                        .attr("class", "label")
+                        .attr("x", function(d) {
+                            return path.centroid(d)[0];
+                        })
+                        .attr("y", function(d) {
+                            return path.centroid(d)[1];
+                        })
+                        .text(function(d) {
+                            if (d.properties.value) {
+                                return formatDecimals(d.properties.value)
+                            };
                         });
 
                     d3.csv("us-cities.csv", function(data) {
@@ -289,12 +316,6 @@
                     .attr("y", 0)
                     .attr("width", 30)
                     .attr("height", 30);
-
-            // zoomIn.append("text")
-            //         .attr("x", 15)
-            //         .attr("y", 20)
-            //         .attr("width", 30)
-            //         .attr("height", 30);
 
             zoomIn.append("text")
                 .attr("x", 15)
