@@ -80,7 +80,9 @@
 
 			//Then define the drag behavior
 			var zoom = d3.zoom()
-						 .on("zoom", zooming);
+                        .scaleExtent([0.2, 2.0])
+                        .translateExtent([[-1200, -700], [1200, 700]])
+						.on("zoom", zooming);
             
             var center = projection([-97.0, 39.0]);
 
