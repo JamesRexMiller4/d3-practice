@@ -3,7 +3,7 @@
         <head>
             <meta charset="utf-8">
             <title>D3: All vehicles</title>
-            <script type="text/javascript" src="../d3.js"></script>
+            <script type="text/javascript" src="../d3-book/d3.js"></script>
             <style type="text/css">
             
               h1 {
@@ -25,8 +25,8 @@
             <h1>Monthly Number of Electric-Drive Vehicles Sold in the U.S.: January 2005&ndash;February 2017</h1>
             <script type="text/javascript">
             
-              var w = 800;
-              var h = 500;
+              var w = 1400;
+              var h = 300;
               var padding = 20;
 
               var dataset, xScale, yScale, xAxis, yAxis, area;
@@ -35,8 +35,8 @@
 
               var formatTime = d3.timeFormat("%b %Y");
 
-              var stack = d3.stack()
-                            .order(d3.stackOrderDescending);
+              var vehicleStack = d3.stack();
+              var typeStack = d3.stack();
 
               d3.request("vehicle_sales_data.csv")
                 .mimeType("text/csv")
@@ -70,10 +70,10 @@
                       }
 
                       dataset[i - 3][makeModel] = {
-                        make,
-                        model,
-                        type,
-                        sales
+                        "make": make,
+                        "model": model,
+                        "type": type,
+                        "sales": sales
                       };
 
                     }
@@ -83,13 +83,48 @@
 
                   var keys = Object.keys(dataset[0]).slice(1);
 
-
-                  stack.keys(keys)
+                  vehicleStack.keys(keys)
                        .value(function value(d, key) {
                          return d[key].sales;
                        });
 
-                  var series = stack(dataset);
+                  var vehicleSeries = vehicleStack(dataset);
+
+                  // TYPE DATA SERIES
+
+                  typeDataset = [];
+
+                  for (var i = 3; i < rows.length; i++) {
+
+                    //Create new object
+                    typeDataset[i - 3] = {
+                      date: parseTime(rows[i][0]),
+                      "HEV": 0,
+                      "PHEV": 0,
+                      "BEV": 0,
+                      "FCEV": 0,
+                    };
+
+                    for (var j = 1; j < rows[i].length; j++) {
+
+                      var type   = rows[2][j];
+                      var sales  = rows[i][j];
+
+
+                      if (sales) {
+                        sales = parseInt(sales);
+                      } else {
+                        sales = 0;
+                      }
+
+                      typeDataset[i - 3][type] += sales;
+
+                    }
+                  }
+
+                  typeStack.keys([ "HEV", "PHEV", "BEV", "FCEV" ]);
+
+                  var typeSeries = typeStack(typeDataset);
 
 
 
@@ -141,30 +176,107 @@
                               .append("svg")
                               .attr("width", w)
                               .attr("height", h);
-
-                  svg.selectAll("path")
-                     .data(series)
-                     .enter()
-                     .append("path")
-                     .attr("class", "area")
-                     .attr("d", area)
-                     .attr("fill", function(d, i) {
-                       return d3.schemeCategory20[i];
-                     })
-                     .append("title")
-                     .text(function(d) {
-                       return d.key;
-                     });
-
+                  
                   svg.append("g")
-                     .attr("class", "axis x")
-                     .attr("transform", "translate(0," + (h - padding) + ")")
-                     .call(xAxis);
+                    .attr("id", "vehicles")
+                    .selectAll("path")
+                    .data(vehicleSeries)
+                    .enter()
+                    .append("path")
+                    .attr("class", "area")
+                    .attr("d", area)
+                    .attr("fill", function(d) {
 
-                  svg.append("g")
-                     .attr("class", "axis y")
-                     .attr("transform", "translate(" + (w - padding * 2) + ",0)")
-                     .call(yAxis);
+                      var thisKey = d.key;
+
+                      var thisType = d[0].data[thisKey].type;
+
+                      var color;
+
+                      switch (thisType) {
+                        case "HEV":
+                          color = d3.schemeCategory20[0];
+                          break;
+                        case "PHEV":
+                          color = d3.schemeCategory20[1];
+                          break;
+                        case "BEV":
+                          color = d3.schemeCategory20[2];
+                          break;
+                        case "FCEV":
+                          color = d3.schemeCategory20[3];
+                          break;
+                        // default:
+                        //   break;
+                      }
+
+                      return color;
+                    })
+                    .append("title")
+                    .text(function(d) {
+                      return d.key;
+                    });
+
+
+                    svg.append("g")
+                      .attr("id", "types")
+                      .selectAll("path")
+                      .data(typeSeries)
+                      .enter()
+                      .append("path")
+                      .attr("class", "area")
+                      .attr("d", area)
+                      .attr("fill", function(d) {
+
+                        	//Which type is this?
+                        var thisType = d.key;
+                      
+                        //New color var
+                        var color;
+                        
+                        switch (thisType) {
+                          case "HEV":
+                            color = "rgb(110, 64, 170)";
+                            break;
+                          case "PHEV":
+                            color = "rgb(76, 110, 219)";
+                            break;
+                          case "BEV":
+                            color = "rgb(35, 171, 216)";
+                            break;
+                          case "FCEV":
+                            color = "rgb(29, 223, 163)";
+                            break;
+                          // default:
+                          //   break;
+                        }
+                        
+                        return color;
+                      })
+                      .append("title")
+                      .text(function(d) {
+                        return d.key;
+                      });
+
+                    d3.select("g#types")
+                      .on("click", function() {
+                        d3.select(this)
+                          .attr("opacity", 1)
+                          .transition()
+                          .duration(2000)
+                          .attr("opacity", 0)
+                      });
+
+                    //Create axes
+                    svg.append("g")
+                      .attr("class", "axis x")
+                      .attr("transform", "translate(0," + (h - padding) + ")")
+                      .call(xAxis);
+                  
+                    svg.append("g")
+                      .attr("class", "axis y")
+                      .attr("transform", "translate(" + (w - padding * 2) + ",0)")
+                      .call(yAxis);
 
                 });
             </script>
