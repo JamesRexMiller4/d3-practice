@@ -35,6 +35,10 @@
 
               var formatTime = d3.timeFormat("%b %Y");
 
+              var key = function(d) {
+                return d.key;
+              }
+
               var vehicleStack = d3.stack();
               var typeStack = d3.stack();
 
@@ -84,9 +88,9 @@
                   var keys = Object.keys(dataset[0]).slice(1);
 
                   vehicleStack.keys(keys)
-                       .value(function value(d, key) {
-                         return d[key].sales;
-                       });
+                      .value(function value(d, key) {
+                        return d[key].sales;
+                      });
 
                   var vehicleSeries = vehicleStack(dataset);
 
@@ -132,8 +136,8 @@
 
                   xScale = d3.scaleTime()
                              .domain([
-                               d3.min(dataset, function(d) { return d.date; }),
-                               d3.max(dataset, function(d) { return d.date; })
+                                d3.min(dataset, function(d) { return d.date; }),
+                                d3.max(dataset, function(d) { return d.date; })
                              ])
                              .range([padding, w - padding * 2]);
 
@@ -141,17 +145,17 @@
                              .domain([
                                0,
                                d3.max(dataset, function(d) {
-                                 var sum = 0;
+                                  var sum = 0;
 
 
                                  //Loops once for each row, to calculate
                                  // the total (sum) of sales of all vehicles
 
-                                 for (var i = 0; i < keys.length; i++) {
-                                   sum += d[keys[i]].sales;
-                                 };
+                                  for (var i = 0; i < keys.length; i++) {
+                                    sum += d[keys[i]].sales;
+                                  };
 
-                                 return sum;
+                                  return sum;
                                })
                              ])
                              .range([h - padding, padding / 2])
@@ -180,7 +184,7 @@
                   svg.append("g")
                     .attr("id", "vehicles")
                     .selectAll("path")
-                    .data(vehicleSeries)
+                    .data(vehicleSeries, key)
                     .enter()
                     .append("path")
                     .attr("class", "area")
@@ -221,7 +225,7 @@
                     svg.append("g")
                       .attr("id", "types")
                       .selectAll("path")
-                      .data(typeSeries)
+                      .data(typeSeries, key)
                       .enter()
                       .append("path")
                       .attr("class", "area")
@@ -253,26 +257,61 @@
                         
                         return color;
                       })
+                      .on("click", function(d) {
+
+                        var thisType = d.key;
+
+                        var thisTypeDataset = [];
+
+                        for (var i = 0; i < typeDataset.length; i++) {
+                          thisTypeDataset[i] = {
+                            date:       typeDataset[i].date,
+                            HEV:        0,
+                            PHEV:       0,
+                            BEV:        0,
+                            FCEV:       0,
+                            [thisType]: typeDataset[i][thisType]
+                          }
+                        }
+
+                        var thisTypeSeries = typeStack(thisTypeDataset);
+
+
+                        var paths = d3.selectAll("#types path")
+                                      .data(thisTypeSeries, key);
+
+
+                        var areaTransitions = paths.transition()
+                                                   .duration(1000)
+                                                   .attr("d", area);
+                        
+                        yScale.domain([
+                          0,
+                          d3.max(thisTypeDataset, function(d) {
+                            var sum = 0;
+
+
+                            sum += d[thisType];
+
+                            return sum;
+                          })
+                        ]);
+
+                        areaTransitions.transition()
+                                      .delay(200)
+                                      .duration(1000)
+                                      .attr("d", area)
+                      })
                       .append("title")
                       .text(function(d) {
                         return d.key;
                       });
 
-                    d3.select("g#types")
-                      .on("click", function() {
-                        d3.select(this)
-                          .attr("opacity", 1)
-                          .transition()
-                          .duration(2000)
-                          .attr("opacity", 0)
-                      });
-
-                    //Create axes
                     svg.append("g")
                       .attr("class", "axis x")
                       .attr("transform", "translate(0," + (h - padding) + ")")
                       .call(xAxis);
-                  
+
                     svg.append("g")
                       .attr("class", "axis y")
                       .attr("transform", "translate(" + (w - padding * 2) + ",0)")
