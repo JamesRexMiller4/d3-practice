@@ -14,10 +14,15 @@
 
               .area {
                 stroke: none;
+                cursor: pointer;
               }
 
               .area:hover {
                 fill: yellow;
+              }
+
+              .area.unclickable {
+                pointer-events: none;
               }
             </style>
         </head>
@@ -84,16 +89,6 @@
 
                   }
 
-
-                  var keys = Object.keys(dataset[0]).slice(1);
-
-                  vehicleStack.keys(keys)
-                      .value(function value(d, key) {
-                        return d[key].sales;
-                      });
-
-                  var vehicleSeries = vehicleStack(dataset);
-
                   // TYPE DATA SERIES
 
                   typeDataset = [];
@@ -126,7 +121,9 @@
                     }
                   }
 
-                  typeStack.keys([ "HEV", "PHEV", "BEV", "FCEV" ]);
+                  
+                  var types = [ "HEV", "PHEV", "BEV", "FCEV" ];
+                  typeStack.keys(types);
 
                   var typeSeries = typeStack(typeDataset);
 
@@ -144,15 +141,15 @@
                   yScale = d3.scaleLinear()
                              .domain([
                                0,
-                               d3.max(dataset, function(d) {
+                               d3.max(typeDataset, function(d) {
                                   var sum = 0;
 
 
                                  //Loops once for each row, to calculate
                                  // the total (sum) of sales of all vehicles
 
-                                  for (var i = 0; i < keys.length; i++) {
-                                    sum += d[keys[i]].sales;
+                                  for (var i = 0; i < types.length; i++) {
+                                    sum += d[types[i]];
                                   };
 
                                   return sum;
@@ -182,137 +179,169 @@
                               .attr("height", h);
                   
                   svg.append("g")
-                    .attr("id", "vehicles")
+                    .attr("id", "vehicles");
+
+                  svg.append("g")
+                    .attr("id", "types")
                     .selectAll("path")
-                    .data(vehicleSeries, key)
+                    .data(typeSeries, key)
                     .enter()
                     .append("path")
                     .attr("class", "area")
+                    .attr("opacity", 1)
                     .attr("d", area)
                     .attr("fill", function(d) {
 
-                      var thisKey = d.key;
-
-                      var thisType = d[0].data[thisKey].type;
+                      var thisType = d.key;
 
                       var color;
 
                       switch (thisType) {
                         case "HEV":
-                          color = d3.schemeCategory20[0];
+                          color = "rgb(110, 64, 170)";
                           break;
                         case "PHEV":
-                          color = d3.schemeCategory20[1];
+                          color = "rgb(76, 110, 219)";
                           break;
                         case "BEV":
-                          color = d3.schemeCategory20[2];
+                          color = "rgb(35, 171, 216)";
                           break;
                         case "FCEV":
-                          color = d3.schemeCategory20[3];
+                          color = "rgb(29, 223, 163)";
                           break;
-                        // default:
-                        //   break;
                       }
 
                       return color;
+                    })
+                    .on("click", function(d) {
+
+                      var thisType = d.key;
+
+                      var thisTypeDataset = [];
+
+                      for (var i = 0; i < typeDataset.length; i++) {
+                        thisTypeDataset[i] = {
+                          date:       typeDataset[i].date,
+                          HEV:        0,
+                          PHEV:       0, 
+                          BEV:        0,
+                          FCEV:       0,
+                          [thisType]: typeDataset[i][thisType]
+                        }
+                      }
+
+
+                      var thisTypeSeries = typeStack(thisTypeDataset);
+
+                      var paths = d3.selectAll("#types path")
+                                    .data(thisTypeSeries, key)
+                                    .classed("unclickable", "true");
+
+                      var areaTransitions = paths.transition()
+                                                .duration(1000)
+                                                .attr("d", area);
+
+                      yScale.domain([
+                        0,
+                        d3.max(thisTypeDataset, function(d) {
+                          var sum = 0;
+
+                          sum += d[thisType];
+
+                          return sum;
+                        })
+                      ]);
+
+                      areaTransitions.transition()
+                                    .delay(200)
+                                    .on('start', function() {
+
+                                      d3.select("g.axis.y")
+                                        .transition()
+                                        .duration(1000)
+                                        .call(yAxis);
+                                    })
+                                    .duration(1000)
+                                    .attr("d", area)
+                                    .transition()
+                                    .on('start', function() {
+
+                                      d3.selectAll("g#vehicles path")
+                                        .attr("opacity", 1);
+                                    })
+                                    .duration(1000)
+                                    .attr("opacity", 0);
+
+                      var keysAll = Object.keys(dataset[0]).slice(1);
+
+
+                      var keysOfThisType = [];
+
+                      for (var i = 0; i < keysAll.length; i++) {
+                        if (dataset[0][keysAll[i]].type == thisType) {
+                          keysOfThisType.push(keysAll[i]);
+                        }
+                      }
+
+
+
+                      vehicleStack.keys(keysOfThisType)
+                                .value(function value(d, key) {
+                                  return d[key].sales;
+                                });
+
+                      var vehicleSeries = vehicleStack(dataset);
+
+                      svg.select("g#vehicles")
+                        .selectAll("path")
+                        .data(vehicleSeries, key)
+                        .enter()
+                        .append("path")
+                        .attr("class", "area")
+                        .attr("opacity", 0)
+                        .attr("d", area)
+                        .attr("fill", function(d, i) {
+
+
+                          var thisKey = d.key;
+
+                          var thisType = d[0].data[thisKey].type;
+
+
+                          var spread = 0.2;
+                          var startingPoint;
+
+                          switch(thisType) {
+                            case "HEV":
+                              startingPoint = 0;
+                              break;
+                            case "PHEV":
+                              startingPoint = 0.2;
+                              break;
+                            case "BEV":
+                            startingPoint = 0.4;
+                            break;
+                            case "FCEV":
+                            startingPoint = 0.6;
+                            break;
+                          }
+
+
+                          var numVehicles = keysOfThisType.length;
+
+                          var normalized = startingPoint + ((i / numVehicles) * spread);
+
+                          return d3.interpolateCool(normalized);
+                        })
+                        .append("title")
+                        .text(function(d) {
+                          return d.key;
+                        });
                     })
                     .append("title")
                     .text(function(d) {
                       return d.key;
                     });
-
-
-                    svg.append("g")
-                      .attr("id", "types")
-                      .selectAll("path")
-                      .data(typeSeries, key)
-                      .enter()
-                      .append("path")
-                      .attr("class", "area")
-                      .attr("d", area)
-                      .attr("fill", function(d) {
-
-                        	//Which type is this?
-                        var thisType = d.key;
-                      
-                        //New color var
-                        var color;
-                        
-                        switch (thisType) {
-                          case "HEV":
-                            color = "rgb(110, 64, 170)";
-                            break;
-                          case "PHEV":
-                            color = "rgb(76, 110, 219)";
-                            break;
-                          case "BEV":
-                            color = "rgb(35, 171, 216)";
-                            break;
-                          case "FCEV":
-                            color = "rgb(29, 223, 163)";
-                            break;
-                          // default:
-                          //   break;
-                        }
-                        
-                        return color;
-                      })
-                      .on("click", function(d) {
-
-                        var thisType = d.key;
-
-                        var thisTypeDataset = [];
-
-                        for (var i = 0; i < typeDataset.length; i++) {
-                          thisTypeDataset[i] = {
-                            date:       typeDataset[i].date,
-                            HEV:        0,
-                            PHEV:       0,
-                            BEV:        0,
-                            FCEV:       0,
-                            [thisType]: typeDataset[i][thisType]
-                          }
-                        }
-
-                        var thisTypeSeries = typeStack(thisTypeDataset);
-
-
-                        var paths = d3.selectAll("#types path")
-                                      .data(thisTypeSeries, key);
-
-
-                        var areaTransitions = paths.transition()
-                                                   .duration(1000)
-                                                   .attr("d", area);
-                        
-                        yScale.domain([
-                          0,
-                          d3.max(thisTypeDataset, function(d) {
-                            var sum = 0;
-
-
-                            sum += d[thisType];
-
-                            return sum;
-                          })
-                        ]);
-
-                        areaTransitions.transition()
-                                      .delay(200)
-                                      .on("start", function() {
-
-                                        d3.select("g.axis.y")
-                                          .transition()
-                                          .duration(1000)
-                                          .call(yAxis)
-                                      })
-                                      .duration(1000)
-                                      .attr("d", area)
-                      })
-                      .append("title")
-                      .text(function(d) {
-                        return d.key;
-                      });
 
                     svg.append("g")
                       .attr("class", "axis x")
